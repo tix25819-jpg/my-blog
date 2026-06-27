@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ========== 用户表 ==========
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  avatar    String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  posts Post[]
+  @@map("users")
+}
+
+// ========== 文章表 ==========
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  content   String?
+  summary   String?
+  coverImage String? @map("cover_image")
+  status    String   @default("draft")   // draft | published
+  isTop     Boolean  @default(false) @map("is_top")
+  authorId  String   @map("author_id")
+  categoryId String? @map("category_id")
+  viewCount Int      @default(0) @map("view_count")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@map("posts")
+}
+
+// ========== 分类表 ==========
+model Category {
+  id          String @id @default(cuid())
+  name        String
+  slug        String @unique
+  description String?
+  sortOrder   Int    @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  posts Post[]
+  @@map("categories")
+}
+
+// ========== 留言表 ==========
+model Message {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  content   String
+  status    String   @default("pending") // pending | approved | rejected
+  reply     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("messages")
+}
+
+// ========== 站点配置表 ==========
+model SiteConfig {
+  id          String @id @default(cuid())
+  configKey   String @unique @map("config_key")
+  configValue String @map("config_value")
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("site_config")
+}
+
+// ========== 管理员表 ==========
+model Admin {
+  id           String @id @default(cuid())
+  username     String @unique
+  passwordHash String @map("password_hash")
+  email        String?
+  role         String @default("admin") // admin | super_admin
+  isActive     Boolean @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("admins")
+}
